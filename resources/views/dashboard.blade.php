@@ -1,17 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-table-columns text-sm text-interactive"></i>
+            <h1 class="text-sm font-semibold tracking-wide text-slate-100">{{ __('Dashboard') }}</h1>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{ __("You're logged in!") }}
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-card>
+        <p class="text-sm text-slate-200">{{ __("You're logged in!") }}</p>
+        <p class="mt-2 text-xs text-slate-400">{{ __('Use the sidebar to manage campaigns, sessions, NPCs, and locations.') }}</p>
+    </x-card>
 </x-app-layout>
