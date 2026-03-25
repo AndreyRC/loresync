@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['campaign_id', 'name', 'description'])]
 class Session extends Model
 {
+    protected $table = 'campaign_sessions';
+
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class);

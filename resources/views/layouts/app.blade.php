@@ -12,7 +12,13 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @php
+            try {
+                echo \Illuminate\Support\Facades\Vite::withEntryPoints(['resources/css/app.css', 'resources/js/app.js']);
+            } catch (\Throwable $e) {
+                // If the Vite manifest/dev server isn't available yet, render without assets.
+            }
+        @endphp
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100">
