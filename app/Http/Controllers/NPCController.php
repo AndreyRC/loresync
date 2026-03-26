@@ -39,15 +39,18 @@ class NPCController extends Controller
             'npcs' => $npcsQuery->get(),
             'campaigns' => $request->user()->campaigns()->orderBy('name')->get(),
             'tag' => $tag,
+            'availableTags' => $request->user()->tags()->orderBy('name')->pluck('name'),
         ]);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        return view('npcs.create');
+        return view('npcs.create', [
+            'availableTags' => $request->user()->tags()->orderBy('name')->pluck('name'),
+        ]);
     }
 
     /**
@@ -90,6 +93,7 @@ class NPCController extends Controller
 
         return view('npcs.edit', [
             'npc' => $npc,
+            'availableTags' => request()->user()->tags()->orderBy('name')->pluck('name'),
         ]);
     }
 

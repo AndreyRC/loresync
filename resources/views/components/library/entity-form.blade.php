@@ -2,6 +2,7 @@
     'type',
     'entity' => null,
     'tags' => [],
+    'availableTags' => [],
     'title' => null,
     'submitLabel' => null,
 ])
@@ -114,12 +115,28 @@
                     </template>
                 </div>
 
+                @if (count($availableTags))
+                    <div class="mt-3">
+                        <x-input-label for="existing_tags" :value="__('Existing tags')" />
+                        <select
+                            id="existing_tags"
+                            class="ls-focus mt-1 block w-full rounded-xl border-border bg-surface/40 text-slate-100 shadow-sm focus:border-interactive focus:ring-interactive/50"
+                            @change="if ($event.target.value) { newTag = $event.target.value; addTag(); $event.target.value = ''; }"
+                        >
+                            <option value="" selected>{{ __('Select a tag...') }}</option>
+                            @foreach ($availableTags as $tagName)
+                                <option value="{{ $tagName }}">{{ $tagName }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+
                 <div class="mt-3 flex items-center gap-2">
                     <input
                         id="tags"
                         type="text"
                         class="ls-focus w-full rounded-xl border-border bg-surface/40 text-slate-100 placeholder:text-slate-500 shadow-sm focus:border-interactive focus:ring-interactive/50"
-                        placeholder="{{ __('Type a tag and press Enter') }}"
+                        placeholder="{{ __('New tag (press Enter)') }}"
                         x-model="newTag"
                         @keydown.enter.prevent="addTag()"
                     />

@@ -24,9 +24,11 @@ return new class extends Migration
 
         // Backfill user ownership and campaign associations based on the prior campaign_id.
         if (Schema::hasColumn('locations', 'campaign_id')) {
-            DB::table('locations')
-                ->join('campaigns', 'locations.campaign_id', '=', 'campaigns.id')
-                ->update(['locations.user_id' => DB::raw('campaigns.user_id')]);
+            // SQLite doesn't support UPDATE ... JOIN with assigning joined columns.
+            // Use a correlated subquery for broad DB compatibility.
+            DB::table('locations')->update([
+                'user_id' => DB::raw('(select user_id from campaigns where campaigns.id = locations.campaign_id)'),
+            ]);
 
             DB::table('campaign_location')->insertUsing(
                 ['campaign_id', 'entity_id'],
@@ -41,9 +43,9 @@ return new class extends Migration
         }
 
         if (Schema::hasColumn('npcs', 'campaign_id')) {
-            DB::table('npcs')
-                ->join('campaigns', 'npcs.campaign_id', '=', 'campaigns.id')
-                ->update(['npcs.user_id' => DB::raw('campaigns.user_id')]);
+            DB::table('npcs')->update([
+                'user_id' => DB::raw('(select user_id from campaigns where campaigns.id = npcs.campaign_id)'),
+            ]);
 
             DB::table('campaign_npc')->insertUsing(
                 ['campaign_id', 'entity_id'],

@@ -10,5 +10,6 @@
         type="items"
         :entity="$item"
         :tags="$item->tags->pluck('name')->all()"
+        :available-tags="$availableTags"
     />
 </x-app-layout>

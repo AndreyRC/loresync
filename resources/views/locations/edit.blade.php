@@ -10,5 +10,6 @@
         type="locations"
         :entity="$location"
         :tags="$location->tags->pluck('name')->all()"
+        :available-tags="$availableTags"
     />
 </x-app-layout>

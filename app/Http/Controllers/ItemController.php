@@ -36,12 +36,15 @@ class ItemController extends Controller
             'items' => $itemsQuery->get(),
             'campaigns' => $request->user()->campaigns()->orderBy('name')->get(),
             'tag' => $tag,
+            'availableTags' => $request->user()->tags()->orderBy('name')->pluck('name'),
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('items.create');
+        return view('items.create', [
+            'availableTags' => $request->user()->tags()->orderBy('name')->pluck('name'),
+        ]);
     }
 
     public function store(StoreItemRequest $request)
@@ -74,6 +77,7 @@ class ItemController extends Controller
 
         return view('items.edit', [
             'item' => $item,
+            'availableTags' => request()->user()->tags()->orderBy('name')->pluck('name'),
         ]);
     }
 

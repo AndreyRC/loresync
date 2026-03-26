@@ -14,10 +14,37 @@
     </x-slot>
 
     <x-card>
-        <form method="GET" action="{{ route('items.index') }}" class="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <form
+            method="GET"
+            action="{{ route('items.index') }}"
+            class="flex flex-col gap-3 sm:flex-row sm:items-end"
+            x-data="{ tagValue: @js(old('tag', $tag) ?? '') }"
+        >
             <div class="flex-1">
-                <x-input-label for="tag" :value="__('Filter by tag')" />
-                <x-text-input id="tag" name="tag" type="text" class="mt-1 block w-full" :value="old('tag', $tag)" placeholder="{{ __('e.g. weapon') }}" />
+                <x-input-label for="tag_select" :value="__('Existing tags')" />
+                <select
+                    id="tag_select"
+                    class="ls-focus mt-1 block w-full rounded-xl border-border bg-app-bg/60 text-slate-100 shadow-sm focus:border-interactive focus:ring-interactive/50"
+                    @change="tagValue = $event.target.value"
+                >
+                    <option value="">{{ __('Select...') }}</option>
+                    @foreach ($availableTags as $tagName)
+                        <option value="{{ $tagName }}" @selected(($tagName === ($tag ?? '')))
+                        >{{ $tagName }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex-1">
+                <x-input-label for="tag" :value="__('Or type a tag')" />
+                <x-text-input
+                    id="tag"
+                    name="tag"
+                    type="text"
+                    class="mt-1 block w-full"
+                    placeholder="{{ __('e.g. weapon') }}"
+                    x-model="tagValue"
+                />
             </div>
             <div class="flex items-center gap-3">
                 <x-primary-button type="submit">{{ __('Filter') }}</x-primary-button>

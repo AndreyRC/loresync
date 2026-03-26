@@ -6,5 +6,5 @@
         </div>
     </x-slot>
 
-    <x-library.entity-form type="items" />
+    <x-library.entity-form type="items" :available-tags="$availableTags" />
 </x-app-layout>

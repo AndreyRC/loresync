@@ -39,15 +39,18 @@ class LocationController extends Controller
             'locations' => $locationsQuery->get(),
             'campaigns' => $request->user()->campaigns()->orderBy('name')->get(),
             'tag' => $tag,
+            'availableTags' => $request->user()->tags()->orderBy('name')->pluck('name'),
         ]);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        return view('locations.create');
+        return view('locations.create', [
+            'availableTags' => $request->user()->tags()->orderBy('name')->pluck('name'),
+        ]);
     }
 
     /**
@@ -90,6 +93,7 @@ class LocationController extends Controller
 
         return view('locations.edit', [
             'location' => $location,
+            'availableTags' => request()->user()->tags()->orderBy('name')->pluck('name'),
         ]);
     }
 
