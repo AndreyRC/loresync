@@ -35,4 +35,24 @@ class User extends Authenticatable
     {
         return $this->hasMany(Campaign::class);
     }
+
+    public function tags(): HasMany
+    {
+        return $this->hasMany(Tag::class);
+    }
+
+    public function npcs(): HasMany
+    {
+        return $this->hasMany(NPC::class);
+    }
+
+    public function locations(): HasMany
+    {
+        return $this->hasMany(Location::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(Item::class);
+    }
 }

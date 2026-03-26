@@ -3,8 +3,20 @@
     $linkActive = 'bg-primary/15 text-slate-50 ring-1 ring-inset ring-primary/30';
     $linkInactive = 'text-slate-300 hover:bg-surface/70 hover:text-slate-50';
 
-    $navLink = function (string $routePattern) use ($linkBase, $linkActive, $linkInactive) {
-        return $linkBase.' '.(request()->routeIs($routePattern) ? $linkActive : $linkInactive);
+    $subLinkBase = 'group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition';
+    $subLinkActive = 'bg-primary/10 text-slate-50 ring-1 ring-inset ring-primary/20';
+    $subLinkInactive = 'text-slate-300/90 hover:bg-surface/60 hover:text-slate-50';
+
+    $navLink = function (string|array $routePattern) use ($linkBase, $linkActive, $linkInactive) {
+        $patterns = is_array($routePattern) ? $routePattern : [$routePattern];
+
+        return $linkBase.' '.(request()->routeIs(...$patterns) ? $linkActive : $linkInactive);
+    };
+
+    $subNavLink = function (string|array $routePattern) use ($subLinkBase, $subLinkActive, $subLinkInactive) {
+        $patterns = is_array($routePattern) ? $routePattern : [$routePattern];
+
+        return $subLinkBase.' '.(request()->routeIs(...$patterns) ? $subLinkActive : $subLinkInactive);
     };
 @endphp
 
@@ -43,16 +55,6 @@
                 <span>{{ __('Campaigns') }}</span>
             </a>
 
-            <a href="{{ route('npcs.index') }}" class="{{ $navLink('npcs.*') }}">
-                <i class="fa-solid fa-users text-sm text-slate-300 transition group-hover:text-interactive"></i>
-                <span>{{ __('NPCs') }}</span>
-            </a>
-
-            <a href="{{ route('locations.index') }}" class="{{ $navLink('locations.*') }}">
-                <i class="fa-solid fa-location-dot text-sm text-slate-300 transition group-hover:text-interactive"></i>
-                <span>{{ __('Locations') }}</span>
-            </a>
-
             <a href="{{ route('sessions.index') }}" class="{{ $navLink('sessions.*') }}">
                 <i class="fa-solid fa-calendar-days text-sm text-slate-300 transition group-hover:text-interactive"></i>
                 <span>{{ __('Sessions') }}</span>
@@ -62,6 +64,34 @@
                 <i class="fa-solid fa-map text-sm text-slate-300 transition group-hover:text-interactive"></i>
                 <span>{{ __('Maps') }}</span>
             </a>
+
+            <div
+                x-data="{ open: {{ (request()->routeIs('world-build.*') || request()->routeIs('npcs.*') || request()->routeIs('locations.*') || request()->routeIs('items.*')) ? 'true' : 'false' }} }"
+                class="space-y-1"
+            >
+                <button type="button" class="{{ $navLink(['world-build.*', 'npcs.*', 'locations.*', 'items.*']) }} w-full" @click="open = !open">
+                    <i class="fa-solid fa-hammer text-sm text-slate-300 transition group-hover:text-interactive"></i>
+                    <span class="flex-1 text-left">{{ __('Wold Build') }}</span>
+                    <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition" :class="open ? 'rotate-180' : ''"></i>
+                </button>
+
+                <div class="ml-6 space-y-1" x-show="open" style="display: none;">
+                    <a href="{{ route('npcs.index') }}" class="{{ $subNavLink('npcs.*') }}">
+                        <i class="fa-solid fa-users text-sm text-slate-300/90 transition group-hover:text-interactive"></i>
+                        <span>{{ __('NPCs') }}</span>
+                    </a>
+
+                    <a href="{{ route('locations.index') }}" class="{{ $subNavLink('locations.*') }}">
+                        <i class="fa-solid fa-location-dot text-sm text-slate-300/90 transition group-hover:text-interactive"></i>
+                        <span>{{ __('Lugares') }}</span>
+                    </a>
+
+                    <a href="{{ route('items.index') }}" class="{{ $subNavLink('items.*') }}">
+                        <i class="fa-solid fa-box text-sm text-slate-300/90 transition group-hover:text-interactive"></i>
+                        <span>{{ __('Itens') }}</span>
+                    </a>
+                </div>
+            </div>
         </div>
 
         <div class="bottom-0 left-0 right-0 border-t border-border/70 px-4 py-4">
