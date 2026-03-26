@@ -54,14 +54,12 @@
                 Entrar
             </x-primary-button>
 
-            @if (Route::has('register'))
-                <a
-                    href="{{ route('register') }}"
-                    class="ls-focus w-full inline-flex items-center justify-center rounded-xl border border-border bg-transparent px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 transition hover:bg-surface/70"
-                >
-                    Criar conta
-                </a>
-            @endif
+            <a
+                href="{{ route('register') }}"
+                class="ls-focus w-full inline-flex items-center justify-center rounded-xl border border-border bg-transparent px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-200 transition hover:bg-surface/70"
+            >
+                Criar conta
+            </a>
         </div>
     </form>
 </x-guest-layout>

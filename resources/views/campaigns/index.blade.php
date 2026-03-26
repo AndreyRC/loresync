@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between w-full p-3">
             <div class="flex items-center gap-3">
                 <i class="fa-solid fa-scroll text-sm text-interactive"></i>
                 <h1 class="text-sm font-semibold tracking-wide text-slate-100">{{ __('Campaigns') }}</h1>

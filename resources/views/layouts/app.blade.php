@@ -15,14 +15,11 @@
         <!-- Icons -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" />
 
+        <!-- Fallback theme (when build assets are stale/unavailable) -->
+        <link rel="stylesheet" href="{{ asset('css/loresync-fallback.css') }}" />
+
         <!-- Scripts -->
-        @php
-            try {
-                echo \Illuminate\Support\Facades\Vite::withEntryPoints(['resources/css/app.css', 'resources/js/app.js']);
-            } catch (\Throwable $e) {
-                // If the Vite manifest/dev server isn't available yet, render without assets.
-            }
-        @endphp
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="h-full">
         <div x-data="{ sidebarOpen: false }" class="min-h-screen bg-app-bg text-slate-100">
@@ -33,14 +30,14 @@
             <div class="sm:pl-64">
                 <header class="sticky top-0 z-30 border-b border-border bg-app-bg/80 backdrop-blur">
                     <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3 w-full">
                             <button type="button" class="ls-focus inline-flex items-center justify-center rounded-xl border border-border bg-surface/50 p-2 text-slate-200 transition hover:bg-surface sm:hidden" @click="sidebarOpen = true">
                                 <span class="sr-only">Open sidebar</span>
                                 <i class="fa-solid fa-bars text-sm"></i>
                             </button>
 
                             @isset($header)
-                                <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-3 w-full">
                                     {{ $header }}
                                 </div>
                             @else

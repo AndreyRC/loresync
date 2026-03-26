@@ -9,8 +9,10 @@
 @endphp
 
 <aside
-    class="fixed inset-y-0 left-0 z-50 w-64 transform border-r border-border bg-surface/60 backdrop-blur transition-transform supports-[backdrop-filter]:bg-surface/50 sm:translate-x-0"
+    class="fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-surface/60 backdrop-blur supports-[backdrop-filter]:bg-surface/50"
     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+    x-transition
+    style="transform: translateX(0);"
 >
     <div class="flex h-16 items-center justify-between px-4">
         <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
@@ -55,20 +57,19 @@
                 <i class="fa-solid fa-calendar-days text-sm text-slate-300 transition group-hover:text-interactive"></i>
                 <span>{{ __('Sessions') }}</span>
             </a>
-        </div>
 
-        <div class="mt-6 border-t border-border/70 pt-4">
             <a href="{{ route('maps.index') }}" class="{{ $navLink('maps.*') }}">
                 <i class="fa-solid fa-map text-sm text-slate-300 transition group-hover:text-interactive"></i>
                 <span>{{ __('Maps') }}</span>
             </a>
         </div>
+
+        <div class="bottom-0 left-0 right-0 border-t border-border/70 px-4 py-4">
+            <div class="text-xs text-slate-400">
+                <div class="font-medium text-slate-300">{{ Auth::user()->email ?? '' }}</div>
+                <div class="mt-1">{{ __('Signed in') }}</div>
+            </div>
+        </div>
     </nav>
 
-    <div class="absolute bottom-0 left-0 right-0 border-t border-border/70 px-4 py-4">
-        <div class="text-xs text-slate-400">
-            <div class="font-medium text-slate-300">{{ Auth::user()->email ?? '' }}</div>
-            <div class="mt-1">{{ __('Signed in') }}</div>
-        </div>
-    </div>
 </aside>
