@@ -6,7 +6,7 @@
         </div>
     </x-slot>
 
-    <div class="space-y-6">
+    <div class="mx-auto w-full max-w-2xl space-y-6">
         <x-card class="p-4 sm:p-8">
             <div class="max-w-xl">
                 @include('profile.partials.update-profile-information-form')
