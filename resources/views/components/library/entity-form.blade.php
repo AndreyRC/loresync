@@ -36,15 +36,28 @@
     $initialAttributes = old('attributes');
 
     if (!is_array($initialAttributes)) {
-        $initialAttributes = $isItemForm
-            ? ($entity?->itemAttributes?->map(fn ($a) => ['key' => $a->key, 'value' => $a->value])->all() ?? [])
-            : ($isNpcForm
-                ? ($entity?->npcAttributes?->map(fn ($a) => ['key' => $a->key, 'value' => $a->value])->all() ?? [])
-                : ($isCharacterForm
-                    ? ($entity?->characterAttributes?->map(fn ($a) => ['key' => $a->key, 'value' => $a->value])->all() ?? [])
-                    : ($isAbilityForm
-                        ? ($entity?->abilityAttributes?->map(fn ($a) => ['key' => $a->key, 'value' => $a->value])->all() ?? [])
-                    : []));
+        $initialAttributes = [];
+
+        if ($isItemForm) {
+            $initialAttributes = $entity?->itemAttributes
+                ?->map(fn ($a) => ['key' => $a->key, 'value' => $a->value])
+                ->all() ?? [];
+        }
+        if ($isNpcForm) {
+            $initialAttributes = $entity?->npcAttributes
+                ?->map(fn ($a) => ['key' => $a->key, 'value' => $a->value])
+                ->all() ?? [];
+        }
+        if ($isCharacterForm) {
+            $initialAttributes = $entity?->characterAttributes
+                ?->map(fn ($a) => ['key' => $a->key, 'value' => $a->value])
+                ->all() ?? [];
+        }
+        if ($isAbilityForm) {
+            $initialAttributes = $entity?->abilityAttributes
+                ?->map(fn ($a) => ['key' => $a->key, 'value' => $a->value])
+                ->all() ?? [];
+        }
     }
 
     $initialAttributes = collect($initialAttributes)
