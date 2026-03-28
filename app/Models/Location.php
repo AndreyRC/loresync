@@ -22,6 +22,11 @@ class Location extends Model
         return $this->hasMany(NPC::class);
     }
 
+    public function characters(): HasMany
+    {
+        return $this->hasMany(Character::class);
+    }
+
     public function tags(): MorphToMany
     {
         return $this->morphToMany(Tag::class, 'taggable');

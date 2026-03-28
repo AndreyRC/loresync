@@ -9,17 +9,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
-#[Fillable(['user_id', 'name', 'description', 'image_path'])]
-class Item extends Model
+#[Fillable(['user_id', 'name', 'description', 'type', 'image_path'])]
+class Ability extends Model
 {
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function itemAttributes(): HasMany
+    public function abilityAttributes(): HasMany
     {
-        return $this->hasMany(ItemAttribute::class);
+        return $this->hasMany(AbilityAttribute::class);
     }
 
     public function tags(): MorphToMany
@@ -27,8 +27,10 @@ class Item extends Model
         return $this->morphToMany(Tag::class, 'taggable');
     }
 
-    public function campaigns(): BelongsToMany
+    public function characters(): BelongsToMany
     {
-        return $this->belongsToMany(Campaign::class, 'campaign_item', 'entity_id', 'campaign_id');
+        return $this->belongsToMany(Character::class, 'ability_character')
+            ->withPivot(['notes'])
+            ->withTimestamps();
     }
 }

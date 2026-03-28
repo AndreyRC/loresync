@@ -21,6 +21,11 @@ class Campaign extends Model
         return $this->belongsToMany(NPC::class, 'campaign_npc', 'campaign_id', 'entity_id');
     }
 
+    public function characters(): BelongsToMany
+    {
+        return $this->belongsToMany(Character::class, 'campaign_character');
+    }
+
     public function locations(): BelongsToMany
     {
         return $this->belongsToMany(Location::class, 'campaign_location', 'campaign_id', 'entity_id');

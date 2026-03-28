@@ -46,6 +46,11 @@ class User extends Authenticatable
         return $this->hasMany(NPC::class);
     }
 
+    public function characters(): HasMany
+    {
+        return $this->hasMany(Character::class);
+    }
+
     public function locations(): HasMany
     {
         return $this->hasMany(Location::class);

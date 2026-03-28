@@ -66,19 +66,19 @@
             </a>
 
             <div
-                x-data="{ open: {{ (request()->routeIs('world-build.*') || request()->routeIs('npcs.*') || request()->routeIs('locations.*') || request()->routeIs('items.*')) ? 'true' : 'false' }} }"
+                x-data="{ open: {{ (request()->routeIs('world-build.*') || request()->routeIs('characters.*') || request()->routeIs('locations.*') || request()->routeIs('items.*') || request()->routeIs('abilities.*')) ? 'true' : 'false' }} }"
                 class="space-y-1"
             >
-                <button type="button" class="{{ $navLink(['world-build.*', 'npcs.*', 'locations.*', 'items.*']) }} w-full" @click="open = !open">
+                <button type="button" class="{{ $navLink(['world-build.*', 'characters.*', 'locations.*', 'items.*', 'abilities.*']) }} w-full" @click="open = !open">
                     <i class="fa-solid fa-hammer text-sm text-slate-300 transition group-hover:text-interactive"></i>
                     <span class="flex-1 text-left">{{ __('Wold Build') }}</span>
                     <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition" :class="open ? 'rotate-180' : ''"></i>
                 </button>
 
                 <div class="ml-6 space-y-1" x-show="open" style="display: none;">
-                    <a href="{{ route('npcs.index') }}" class="{{ $subNavLink('npcs.*') }}">
-                        <i class="fa-solid fa-users text-sm text-slate-300/90 transition group-hover:text-interactive"></i>
-                        <span>{{ __('NPCs') }}</span>
+                    <a href="{{ route('characters.index') }}" class="{{ $subNavLink('characters.*') }}">
+                        <i class="fa-solid fa-user-group text-sm text-slate-300/90 transition group-hover:text-interactive"></i>
+                        <span>{{ __('Characters') }}</span>
                     </a>
 
                     <a href="{{ route('locations.index') }}" class="{{ $subNavLink('locations.*') }}">
@@ -89,6 +89,11 @@
                     <a href="{{ route('items.index') }}" class="{{ $subNavLink('items.*') }}">
                         <i class="fa-solid fa-box text-sm text-slate-300/90 transition group-hover:text-interactive"></i>
                         <span>{{ __('Itens') }}</span>
+                    </a>
+
+                    <a href="{{ route('abilities.index') }}" class="{{ $subNavLink('abilities.*') }}">
+                        <i class="fa-solid fa-bolt text-sm text-slate-300/90 transition group-hover:text-interactive"></i>
+                        <span>{{ __('Habilidades') }}</span>
                     </a>
                 </div>
             </div>

@@ -4,6 +4,9 @@
     'tags' => [],
     'availableTags' => [],
     'availableNpcs' => [],
+    'availableCharacters' => [],
+    'availablePlayers' => [],
+    'availableCampaigns' => [],
     'title' => null,
     'submitLabel' => null,
 ])
@@ -15,6 +18,11 @@
 
     $isItemForm = $type === 'items';
     $isNpcForm = $type === 'npcs';
+    $isCharacterForm = $type === 'characters';
+    $isAbilityForm = $type === 'abilities';
+
+    $relationshipIdKey = $isCharacterForm ? 'related_character_id' : 'related_npc_id';
+    $relationshipEntities = $isCharacterForm ? $availableCharacters : $availableNpcs;
 
     $resolvedTitle = $title ?? ($isEditing ? __('Edit') : __('Create'));
     $resolvedSubmitLabel = $submitLabel ?? ($isEditing ? __('Save') : __('Create'));
@@ -32,7 +40,11 @@
             ? ($entity?->itemAttributes?->map(fn ($a) => ['key' => $a->key, 'value' => $a->value])->all() ?? [])
             : ($isNpcForm
                 ? ($entity?->npcAttributes?->map(fn ($a) => ['key' => $a->key, 'value' => $a->value])->all() ?? [])
-                : []);
+                : ($isCharacterForm
+                    ? ($entity?->characterAttributes?->map(fn ($a) => ['key' => $a->key, 'value' => $a->value])->all() ?? [])
+                    : ($isAbilityForm
+                        ? ($entity?->abilityAttributes?->map(fn ($a) => ['key' => $a->key, 'value' => $a->value])->all() ?? [])
+                    : []));
     }
 
     $initialAttributes = collect($initialAttributes)
@@ -52,9 +64,9 @@
     $initialRelationships = old('relationships');
 
     if (!is_array($initialRelationships)) {
-        $initialRelationships = $isNpcForm
+        $initialRelationships = ($isNpcForm || $isCharacterForm)
             ? ($entity?->outgoingRelationships?->map(fn ($r) => [
-                'related_npc_id' => $r->related_npc_id,
+                'related_id' => $isCharacterForm ? $r->related_character_id : $r->related_npc_id,
                 'type' => $r->type,
                 'description' => $r->description,
             ])->all() ?? [])
@@ -64,17 +76,23 @@
     $initialRelationships = collect($initialRelationships)
         ->map(function ($relationship) {
             if (!is_array($relationship)) {
-                return ['related_npc_id' => '', 'type' => 'ally', 'description' => ''];
+                return ['related_id' => '', 'type' => 'ally', 'description' => ''];
             }
 
             return [
-                'related_npc_id' => isset($relationship['related_npc_id']) ? (string) $relationship['related_npc_id'] : '',
+                'related_id' => isset($relationship['related_character_id'])
+                    ? (string) $relationship['related_character_id']
+                    : (isset($relationship['related_npc_id']) ? (string) $relationship['related_npc_id'] : (isset($relationship['related_id']) ? (string) $relationship['related_id'] : '')),
                 'type' => isset($relationship['type']) && (string) $relationship['type'] !== '' ? (string) $relationship['type'] : 'ally',
                 'description' => isset($relationship['description']) ? (string) $relationship['description'] : '',
             ];
         })
         ->values()
         ->all();
+
+    $initialCharacterType = old('type', $entity?->type ?? 'npc');
+    $initialPlayerUserId = old('player_user_id', $entity?->playerProfile?->player_user_id ?? '');
+    $initialCampaignId = old('campaign_id', $entity?->playerProfile?->campaign_id ?? '');
 @endphp
 
 <x-card>
@@ -91,6 +109,9 @@
         x-data="{
             attributes: @js($initialAttributes),
             relationships: @js($initialRelationships),
+            characterType: @js($initialCharacterType),
+            playerUserId: @js((string) $initialPlayerUserId),
+            campaignId: @js((string) $initialCampaignId),
             addAttribute() {
                 this.attributes.push({ key: '', value: '' });
             },
@@ -101,13 +122,13 @@
                 if (this.attributes.length === 0) this.addAttribute();
             },
             addRelationship() {
-                this.relationships.push({ related_npc_id: '', type: 'ally', description: '' });
+                this.relationships.push({ related_id: '', type: 'ally', description: '' });
             },
             removeRelationship(index) {
                 this.relationships.splice(index, 1);
             },
         }"
-        x-init="if ({{ $isItemForm ? 'true' : 'false' }}) ensureAtLeastOne()"
+        x-init="if ({{ ($isItemForm || $isAbilityForm) ? 'true' : 'false' }}) ensureAtLeastOne()"
     >
         @csrf
         @method($method)
@@ -121,7 +142,7 @@
             autofocus
         />
 
-        @if ($isNpcForm)
+        @if ($isNpcForm || $isCharacterForm)
             <x-input
                 name="title"
                 :label="__('Title')"
@@ -129,6 +150,19 @@
                 :value="old('title', $entity?->title)"
                 placeholder="{{ __('e.g. Captain of the Guard') }}"
             />
+        @endif
+
+        @if ($isCharacterForm)
+            <x-select
+                name="type"
+                :label="__('Type')"
+                icon="user"
+                x-model="characterType"
+                required
+            >
+                <option value="npc">{{ __('NPC') }}</option>
+                <option value="player">{{ __('Player') }}</option>
+            </x-select>
         @endif
 
         <x-textarea
@@ -139,21 +173,60 @@
             :value="old('description', $entity?->description)"
         />
 
-        @if ($isNpcForm)
+        @if ($isNpcForm || $isCharacterForm)
             @php
                 $selectedStatus = old('status', $entity?->status);
             @endphp
 
-            <x-select
-                name="status"
-                :label="__('Status')"
-            >
-                <option value="">{{ __('Unknown') }}</option>
-                <option value="alive" @selected($selectedStatus === 'alive')>{{ __('Alive') }}</option>
-                <option value="dead" @selected($selectedStatus === 'dead')>{{ __('Dead') }}</option>
-                <option value="missing" @selected($selectedStatus === 'missing')>{{ __('Missing') }}</option>
-                <option value="unknown" @selected($selectedStatus === 'unknown')>{{ __('Unknown') }}</option>
-            </x-select>
+            <div @if ($isCharacterForm) x-show="characterType === 'npc'" @endif>
+                <x-select
+                    name="status"
+                    :label="__('Status')"
+                >
+                    <option value="">{{ __('Unknown') }}</option>
+                    <option value="alive" @selected($selectedStatus === 'alive')>{{ __('Alive') }}</option>
+                    <option value="dead" @selected($selectedStatus === 'dead')>{{ __('Dead') }}</option>
+                    <option value="missing" @selected($selectedStatus === 'missing')>{{ __('Missing') }}</option>
+                    <option value="unknown" @selected($selectedStatus === 'unknown')>{{ __('Unknown') }}</option>
+                </x-select>
+            </div>
+        @endif
+
+        @if ($isCharacterForm)
+            <div class="space-y-3" x-show="characterType === 'player'">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                        <x-select
+                            name="player_user_id"
+                            :label="__('Player')"
+                            icon="user"
+                            x-model="playerUserId"
+                        >
+                            <option value="">{{ __('Select...') }}</option>
+                            @foreach ($availablePlayers as $player)
+                                <option value="{{ $player->id }}">{{ $player->name }}</option>
+                            @endforeach
+                        </x-select>
+                        <x-input-error :messages="$errors->get('player_user_id')" />
+                    </div>
+
+                    <div>
+                        <x-select
+                            name="campaign_id"
+                            :label="__('Campaign')"
+                            icon="scroll"
+                            x-model="campaignId"
+                        >
+                            <option value="">{{ __('Select...') }}</option>
+                            @foreach ($availableCampaigns as $campaign)
+                                <option value="{{ $campaign->id }}">{{ $campaign->name }}</option>
+                            @endforeach
+                        </x-select>
+                        <x-input-error :messages="$errors->get('campaign_id')" />
+                    </div>
+                </div>
+                <p class="text-xs text-slate-400">{{ __('Player characters require a Player and Campaign.') }}</p>
+            </div>
         @endif
 
         @if ($isItemForm)
@@ -162,16 +235,27 @@
                 :label="__('Type')"
                 icon="tag"
             >
-                <option value="">{{ __('Select...') }}</option>
                 @php
                     $selectedType = old('type', $entity?->type);
                 @endphp
+                <option value="">{{ __('Select...') }}</option>
+
                 <option value="weapon" @selected($selectedType === 'weapon')>{{ __('Weapon') }}</option>
                 <option value="armor" @selected($selectedType === 'armor')>{{ __('Armor') }}</option>
                 <option value="consumable" @selected($selectedType === 'consumable')>{{ __('Consumable') }}</option>
                 <option value="artifact" @selected($selectedType === 'artifact')>{{ __('Artifact') }}</option>
                 <option value="misc" @selected($selectedType === 'misc')>{{ __('Misc') }}</option>
             </x-select>
+        @endif
+
+        @if ($isAbilityForm)
+            <x-input
+                name="type"
+                :label="__('Type')"
+                icon="tag"
+                :value="old('type', $entity?->type)"
+                placeholder="{{ __('e.g. spell') }}"
+            />
         @endif
 
         <x-file-input
@@ -189,7 +273,7 @@
             :available-tags="$availableTags"
         />
 
-        @if ($isItemForm || $isNpcForm)
+        @if ($isItemForm || $isNpcForm || $isCharacterForm || $isAbilityForm)
             <div class="space-y-2">
                 <div class="flex items-center justify-between gap-3">
                     <div>
@@ -197,7 +281,10 @@
                         <p class="mt-1 text-xs text-slate-400">
                             {{ $isItemForm
                                 ? __('Add any custom fields you want (damage, rarity, weight, etc.).')
-                                : __('Add any custom fields you want (strength, sanity, bonds, etc.).')
+                                : ($isAbilityForm
+                                    ? __('Add any custom fields you want (mana cost, damage, duration, etc.).')
+                                    : __('Add any custom fields you want (strength, sanity, bonds, etc.).')
+                                )
                             }}
                         </p>
                     </div>
@@ -216,7 +303,7 @@
                                     type="text"
                                     :name="`attributes[${index}][key]`"
                                     x-model="attribute.key"
-                                    placeholder="{{ $isItemForm ? __('Damage') : __('Strength') }}"
+                                    placeholder="{{ $isItemForm ? __('Damage') : ($isAbilityForm ? __('Mana Cost') : __('Strength')) }}"
                                     class="ls-focus block w-full rounded-xl border border-border bg-surface px-3 py-2 text-slate-200 placeholder:text-slate-500 shadow-sm transition hover:border-slate-600 focus:border-primary focus:ring-primary/30"
                                 />
                             </div>
@@ -226,7 +313,7 @@
                                     type="text"
                                     :name="`attributes[${index}][value]`"
                                     x-model="attribute.value"
-                                    placeholder="{{ $isItemForm ? __('1d8') : __('14') }}"
+                                    placeholder="{{ $isItemForm ? __('1d8') : ($isAbilityForm ? __('10') : __('14')) }}"
                                     class="ls-focus block w-full rounded-xl border border-border bg-surface px-3 py-2 text-slate-200 placeholder:text-slate-500 shadow-sm transition hover:border-slate-600 focus:border-primary focus:ring-primary/30"
                                 />
                             </div>
@@ -251,7 +338,7 @@
             </div>
         @endif
 
-        @if ($isNpcForm)
+        @if ($isNpcForm || $isCharacterForm)
             <div class="space-y-2">
                 <div class="flex items-center justify-between gap-3">
                     <div>
@@ -270,14 +357,14 @@
                         <div class="grid grid-cols-1 gap-2 sm:grid-cols-12">
                             <div class="sm:col-span-4">
                                 <select
-                                    :name="`relationships[${index}][related_npc_id]`"
-                                    x-model="relationship.related_npc_id"
+                                    :name="`relationships[${index}][{{ $relationshipIdKey }}]`"
+                                    x-model="relationship.related_id"
                                     class="ls-focus block w-full appearance-none rounded-xl border border-border bg-surface px-3 py-2 text-slate-200 shadow-sm transition hover:border-slate-600 focus:border-primary focus:ring-primary/30"
                                     required
                                 >
-                                    <option value="" disabled>{{ __('Select NPC...') }}</option>
-                                    @foreach ($availableNpcs as $availableNpc)
-                                        <option value="{{ $availableNpc->id }}">{{ $availableNpc->name }}</option>
+                                    <option value="" disabled>{{ $isCharacterForm ? __('Select Character...') : __('Select NPC...') }}</option>
+                                    @foreach ($relationshipEntities as $entityOption)
+                                        <option value="{{ $entityOption->id }}">{{ $entityOption->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -324,7 +411,7 @@
                 </div>
 
                 <x-input-error :messages="$errors->get('relationships')" />
-                <x-input-error :messages="$errors->get('relationships.*.related_npc_id')" />
+                <x-input-error :messages="$errors->get('relationships.*.'.$relationshipIdKey)" />
                 <x-input-error :messages="$errors->get('relationships.*.type')" />
                 <x-input-error :messages="$errors->get('relationships.*.description')" />
             </div>

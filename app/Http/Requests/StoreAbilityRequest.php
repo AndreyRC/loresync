@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreItemRequest extends FormRequest
+class StoreAbilityRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -19,7 +19,9 @@ class StoreItemRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'type' => ['nullable', 'string', 'max:50'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+
             'tags' => ['nullable', 'array'],
             'tags.*' => ['string', 'max:50'],
 
