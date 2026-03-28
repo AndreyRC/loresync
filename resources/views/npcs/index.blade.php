@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-row gap-3 sm:items-center sm:justify-between">
             <div class="flex items-center gap-3">
                 <i class="fa-solid fa-users text-sm text-interactive"></i>
                 <h1 class="text-sm font-semibold tracking-wide text-slate-100">{{ __('NPCs') }}</h1>
@@ -21,10 +21,11 @@
             x-data="{ tagValue: @js(old('tag', $tag) ?? '') }"
         >
             <div class="flex-1">
-                <x-input-label for="tag_select" :value="__('Existing tags')" />
-                <select
+                <x-select
                     id="tag_select"
-                    class="ls-focus mt-1 block w-full rounded-xl border-border bg-app-bg/60 text-slate-100 shadow-sm focus:border-interactive focus:ring-interactive/50"
+                    name="tag_select"
+                    :label="__('Existing tags')"
+                    icon="tag"
                     @change="tagValue = $event.target.value"
                 >
                     <option value="">{{ __('Select...') }}</option>
@@ -32,16 +33,34 @@
                         <option value="{{ $tagName }}" @selected(($tagName === ($tag ?? '')))
                         >{{ $tagName }}</option>
                     @endforeach
-                </select>
+                </x-select>
             </div>
 
             <div class="flex-1">
-                <x-input-label for="tag" :value="__('Or type a tag')" />
-                <x-text-input
+                <x-select
+                    id="status"
+                    name="status"
+                    :label="__('Status')"
+                    icon="tag"
+                >
+                    @php
+                        $selectedStatus = old('status', $status ?? '');
+                    @endphp
+                    <option value="">{{ __('Any status') }}</option>
+                    <option value="alive" @selected($selectedStatus === 'alive')>{{ __('Alive') }}</option>
+                    <option value="dead" @selected($selectedStatus === 'dead')>{{ __('Dead') }}</option>
+                    <option value="missing" @selected($selectedStatus === 'missing')>{{ __('Missing') }}</option>
+                    <option value="unknown" @selected($selectedStatus === 'unknown')>{{ __('Unknown') }}</option>
+                </x-select>
+            </div>
+
+            <div class="flex-1">
+                <x-input
                     id="tag"
                     name="tag"
                     type="text"
-                    class="mt-1 block w-full"
+                    :label="__('Or type a tag')"
+                    icon="tag"
                     placeholder="{{ __('e.g. villain') }}"
                     x-model="tagValue"
                 />

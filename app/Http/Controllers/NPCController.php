@@ -6,6 +6,7 @@ use App\Http\Requests\StoreNPCRequest;
 use App\Models\Campaign;
 use App\Models\NPC;
 use App\Services\ImageService;
+use App\Services\NPCService;
 use App\Services\TagService;
 use Illuminate\Http\Request;
 
@@ -14,6 +15,7 @@ class NPCController extends Controller
     public function __construct(
         private readonly TagService $tagService,
         private readonly ImageService $imageService,
+        private readonly NPCService $npcService,
     ) {
     }
 
@@ -23,6 +25,7 @@ class NPCController extends Controller
     public function index(Request $request)
     {
         $tag = $request->query('tag');
+        $status = $request->query('status');
 
         $npcsQuery = NPC::query()
             ->where('user_id', $request->user()->id)
@@ -35,10 +38,15 @@ class NPCController extends Controller
             });
         }
 
+        if (is_string($status) && $status !== '') {
+            $npcsQuery->where('status', $status);
+        }
+
         return view('npcs.index', [
             'npcs' => $npcsQuery->get(),
             'campaigns' => $request->user()->campaigns()->orderBy('name')->get(),
             'tag' => $tag,
+            'status' => $status,
             'availableTags' => $request->user()->tags()->orderBy('name')->pluck('name'),
         ]);
     }
@@ -50,6 +58,10 @@ class NPCController extends Controller
     {
         return view('npcs.create', [
             'availableTags' => $request->user()->tags()->orderBy('name')->pluck('name'),
+            'availableNpcs' => NPC::query()
+                ->where('user_id', $request->user()->id)
+                ->orderBy('name')
+                ->get(['id', 'name']),
         ]);
     }
 
@@ -62,14 +74,17 @@ class NPCController extends Controller
 
         $imagePath = $this->imageService->storePublic($request->file('image'), 'npcs');
 
-        $npc = NPC::create([
-            'user_id' => $request->user()->id,
+        $npc = $this->npcService->create($request->user(), [
             'name' => $validated['name'],
+            'title' => $validated['title'] ?? null,
             'description' => $validated['description'] ?? null,
+            'status' => $validated['status'] ?? null,
             'image_path' => $imagePath,
         ]);
 
         $this->tagService->syncTags($npc, $request->user(), $validated['tags'] ?? []);
+        $this->npcService->syncAttributes($npc, $validated['attributes'] ?? []);
+        $this->npcService->syncRelationships($npc, $validated['relationships'] ?? []);
 
         return redirect()->route('npcs.index');
     }
@@ -79,7 +94,13 @@ class NPCController extends Controller
      */
     public function show(NPC $npc)
     {
-        return redirect()->route('npcs.edit', $npc);
+        $this->authorizeEntity($npc);
+
+        $npc->load(['tags', 'npcAttributes', 'outgoingRelationships.relatedNpc']);
+
+        return view('npcs.show', [
+            'npc' => $npc,
+        ]);
     }
 
     /**
@@ -89,11 +110,16 @@ class NPCController extends Controller
     {
         $this->authorizeEntity($npc);
 
-        $npc->load('tags');
+        $npc->load(['tags', 'npcAttributes', 'outgoingRelationships']);
 
         return view('npcs.edit', [
             'npc' => $npc,
             'availableTags' => request()->user()->tags()->orderBy('name')->pluck('name'),
+            'availableNpcs' => NPC::query()
+                ->where('user_id', request()->user()->id)
+                ->where('id', '!=', $npc->id)
+                ->orderBy('name')
+                ->get(['id', 'name']),
         ]);
     }
 
@@ -106,16 +132,24 @@ class NPCController extends Controller
 
         $validated = $request->validated();
 
+        $imagePath = $npc->image_path;
+
         if ($request->hasFile('image')) {
             $this->imageService->deletePublic($npc->image_path);
-            $npc->image_path = $this->imageService->storePublic($request->file('image'), 'npcs');
+            $imagePath = $this->imageService->storePublic($request->file('image'), 'npcs');
         }
 
-        $npc->name = $validated['name'];
-        $npc->description = $validated['description'] ?? null;
-        $npc->save();
+        $this->npcService->update($npc, [
+            'name' => $validated['name'],
+            'title' => $validated['title'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'status' => $validated['status'] ?? null,
+            'image_path' => $imagePath,
+        ]);
 
         $this->tagService->syncTags($npc, $request->user(), $validated['tags'] ?? []);
+        $this->npcService->syncAttributes($npc, $validated['attributes'] ?? []);
+        $this->npcService->syncRelationships($npc, $validated['relationships'] ?? []);
 
         return redirect()->route('npcs.index');
     }

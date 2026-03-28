@@ -11,5 +11,6 @@
         :entity="$npc"
         :tags="$npc->tags->pluck('name')->all()"
         :available-tags="$availableTags"
+        :available-npcs="$availableNpcs"
     />
 </x-app-layout>

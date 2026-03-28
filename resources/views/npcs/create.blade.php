@@ -6,5 +6,5 @@
         </div>
     </x-slot>
 
-    <x-library.entity-form type="npcs" :available-tags="$availableTags" />
+    <x-library.entity-form type="npcs" :available-tags="$availableTags" :available-npcs="$availableNpcs" />
 </x-app-layout>
